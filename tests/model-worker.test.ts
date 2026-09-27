@@ -201,9 +201,7 @@ test("aborting delegated read_web stops before page read and requeues the task",
   assert.ok(address && typeof address !== "string");
 
   await modelFixture(t, (index) =>
-    index === 0
-      ? { name: "read_web", arguments: { url: "https://example.org/" } }
-      : undefined,
+    index === 0 ? { name: "read_web", arguments: { url: "https://example.org/" } } : undefined,
   );
   const server = await createApp(db, {
     mode: "sample",
