@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   assertApiDeploymentConfig,
   type Config,
+  readConfig,
   shadowedEnvKeys,
 } from "../apps/server/src/config.ts";
 
@@ -49,6 +50,25 @@ test("every API mode accepts a non-empty Intelligence key", () => {
       assertApiDeploymentConfig({ ...mode, intelligenceApiKey: "test-project-key-never-sent" }),
     );
   }
+});
+
+test("web search is disabled unless explicitly enabled", (t) => {
+  const previous = { ...process.env };
+  t.after(() => {
+    process.env = previous;
+  });
+  process.env.WORKSPACE_MODE = "sample";
+  process.env.AGENT_BACKEND = "model";
+  process.env.HOST = "127.0.0.1";
+  process.env.CPK_INTELLIGENCE_API_KEY = "test-project-key-never-sent";
+  delete process.env.WEB_SEARCH_ENABLED;
+  assert.equal(readConfig().webSearchEnabled, false);
+  for (const value of ["false", "", "1", "TRUE"]) {
+    process.env.WEB_SEARCH_ENABLED = value;
+    assert.equal(readConfig().webSearchEnabled, false);
+  }
+  process.env.WEB_SEARCH_ENABLED = "true";
+  assert.equal(readConfig().webSearchEnabled, true);
 });
 
 test("environment variables that override a different .env value are reported by name", () => {
